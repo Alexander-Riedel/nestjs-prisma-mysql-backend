@@ -1,7 +1,17 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+
+import { AppModule } from './app.module';
+
+const HOST = '127.0.0.1';
+const PORT = 3000;
+const CORS_ORIGINS = ['http://localhost:4200'];
+const SWAGGER_CONFIG = {
+  title: 'REST-API',
+  description: '',
+  version: '0.1',
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -9,15 +19,15 @@ async function bootstrap() {
   const server = app.getHttpAdapter().getInstance();
   server.disable('x-powered-by');
 
+  // CORS
   app.enableCors({
-    origin: [
-      'http://localhost:4200',
-    ],
+    origin: CORS_ORIGINS,
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
+  // Global validation
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -26,15 +36,16 @@ async function bootstrap() {
     }),
   );
 
-  const config = new DocumentBuilder()
-    .setTitle('Backend API')
-    .setDescription('NestJS + Prisma + MySQL API')
-    .setVersion('1.0')
+  // Swagger
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle(SWAGGER_CONFIG.title)
+    .setDescription(SWAGGER_CONFIG.description)
+    .setVersion(SWAGGER_CONFIG.version)
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api', app, swaggerDocument);
 
-  await app.listen(3000, '127.0.0.1');
+  await app.listen(PORT, HOST);
 }
 bootstrap();
