@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import * as cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 
@@ -11,7 +12,7 @@ const SWAGGER_CONFIG = {
   title: 'REST-API',
   description: '',
   version: '0.1',
-}
+};
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,12 +20,15 @@ async function bootstrap() {
   const server = app.getHttpAdapter().getInstance();
   server.disable('x-powered-by');
 
+  // Cookies (für SessionGuard / CsrfGuard)
+  app.use(cookieParser());
+
   // CORS
   app.enableCors({
     origin: CORS_ORIGINS,
     credentials: true,
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF'],
   });
 
   // Global validation
